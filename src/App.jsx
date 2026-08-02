@@ -177,12 +177,24 @@ function App() {
     setIsVotesLoading(false);
   }, []);
 
+  // Load Midtrans Snap script sekali saat mount
+  useEffect(() => {
+    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
+    if (!clientKey) return;
+    const script = document.createElement('script');
+    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    script.setAttribute('data-client-key', clientKey);
+    script.async = true;
+    document.head.appendChild(script);
+    return () => {
+      document.head.removeChild(script);
+    };
+  }, []);
+
   // Fetch awal saat komponen mount
   useEffect(() => {
     fetchVotes();
   }, [fetchVotes]);
-
-  // ── Realtime subscription: auto-update saat vote_count berubah ────────────
   useEffect(() => {
     const channel = supabase
       .channel('votes-realtime')
@@ -286,7 +298,26 @@ function App() {
       }
 
       const data = await response.json();
-      window.location.href = data.redirect_url;
+
+      // Buka Snap popup — lebih baik daripada redirect untuk demo
+      window.snap.pay(data.token, {
+        onSuccess: () => {
+          setPaymentStatus('Pembayaran berhasil! Suara kamu sudah tercatat.');
+          setIsLoading(false);
+        },
+        onPending: () => {
+          setPaymentStatus('Pembayaran pending. Selesaikan pembayaran untuk mencatat suara.');
+          setIsLoading(false);
+        },
+        onError: () => {
+          setPaymentStatus('Pembayaran gagal. Silakan coba lagi.');
+          setIsLoading(false);
+        },
+        onClose: () => {
+          setPaymentStatus('Pembayaran dibatalkan.');
+          setIsLoading(false);
+        },
+      });
     } catch (error) {
       setPaymentStatus(error.message || 'Terjadi kesalahan pembayaran.');
       setIsLoading(false);
