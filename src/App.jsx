@@ -292,12 +292,20 @@ function App() {
         body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) {
-        const errorPayload = await response.json();
-        throw new Error(errorPayload.error || 'Gagal membuat transaksi Midtrans.');
+      // Baca body sebagai teks dulu — hindari crash jika body kosong
+      const responseText = await response.text();
+      let responseData;
+      try {
+        responseData = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        throw new Error(`Response tidak valid dari server (status ${response.status}).`);
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(responseData?.error || `Gagal membuat transaksi (status ${response.status}).`);
+      }
+
+      const data = responseData;
 
       // Buka Snap popup — lebih baik daripada redirect untuk demo
       window.snap.pay(data.token, {
