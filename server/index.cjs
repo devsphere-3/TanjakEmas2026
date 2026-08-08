@@ -16,7 +16,7 @@ app.use(express.json());
 
 // ── Midtrans ─────────────────────────────────────────────────────────────────
 const serverKey = process.env.MIDTRANS_SERVER_KEY;
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true';
 
 if (!serverKey) {
   console.warn('MIDTRANS_SERVER_KEY tidak ditemukan di .env.');
@@ -54,9 +54,15 @@ app.post('/create-transaction', async (req, res) => {
     const parameter = {
       transaction_details: {
         order_id: orderId,
-        gross_amount: grossAmount,
+        gross_amount: Number(grossAmount),
       },
-      item_details: itemDetails,
+      item_details: itemDetails.map((item) => ({
+        id: String(item.id).substring(0, 50),
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+        // Midtrans limit: 50 karakter
+        name: String(item.name).substring(0, 50),
+      })),
       customer_details: customerDetails,
       credit_card: { secure: true },
       enabled_payments: [

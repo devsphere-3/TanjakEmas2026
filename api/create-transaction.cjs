@@ -2,7 +2,7 @@ const MidtransSnap = require('midtrans-client').Snap;
 const { createClient } = require('@supabase/supabase-js');
 
 const snap = new MidtransSnap({
-  isProduction: false, // Sandbox — ganti true saat go-live
+  isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
   serverKey: process.env.MIDTRANS_SERVER_KEY,
 });
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from './supabase.js';
+import SaweriaModal from './SaweriaModal.jsx';
 
 const categories = [
   {
@@ -64,7 +65,7 @@ const categories = [
     id: 'sma',
     title: 'SMA/MA/SMK',
     schools: [
-      'MA Al I’Dadiyyah Bahrul Ulum, Jombang, Jawa Timur',
+      'MA Al I\u2019Dadiyyah Bahrul Ulum, Jombang, Jawa Timur',
       'MA Al Khidmah, Ngronggot, Nganjuk, Jawa Timur',
       'MA Negeri 1 Batam, Kepulauan Riau',
       'MA Negeri 1 Magetan, Jawa Timur',
@@ -99,8 +100,6 @@ const categories = [
   },
 ];
 
-const VOTE_PRICE = 1000;
-
 const initialVotes = categories.reduce((map, category) => {
   category.schools.forEach((school, index) => {
     map[`${category.id}-${index}`] = 0;
@@ -110,25 +109,25 @@ const initialVotes = categories.reduce((map, category) => {
 
 const schoolLookup = categories.reduce((map, category) => {
   category.schools.forEach((school, index) => {
-    map[`${category.id}-${index}`] = { id: `${category.id}-${index}`, name: school, category: category.title };
+    map[`${category.id}-${index}`] = {
+      id: `${category.id}-${index}`,
+      name: school,
+      category: category.title,
+    };
   });
   return map;
 }, {});
 
 function App() {
   const [selectedCategory, setSelectedCategory] = useState(categories[0].id);
-  const [selectedSchool, setSelectedSchool] = useState(`${categories[0].id}-0`);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [voteCount, setVoteCount] = useState('1');
-  const [paymentStatus, setPaymentStatus] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [votes, setVotes] = useState(initialVotes);
-  const [isVotesLoading, setIsVotesLoading] = useState(true);
+  const [selectedSchool,   setSelectedSchool]   = useState(`${categories[0].id}-0`);
+  const [searchTerm,       setSearchTerm]       = useState('');
+  const [votes,            setVotes]            = useState(initialVotes);
+  const [isVotesLoading,   setIsVotesLoading]   = useState(true);
+  const [showModal,        setShowModal]        = useState(false);
+  const [lbFilter,         setLbFilter]         = useState('sdmi');
 
-  const numericVoteCount = Number(voteCount);
-  const normalizedVoteCount = Number.isInteger(numericVoteCount) && numericVoteCount > 0 ? numericVoteCount : 1;
-
-  const category = categories.find((item) => item.id === selectedCategory);
+  const category = categories.find((c) => c.id === selectedCategory);
 
   const filteredSchools = category?.schools
     .map((school, index) => ({ school, index }))
@@ -136,426 +135,275 @@ function App() {
       searchTerm.trim().length > 0
         ? school.toLowerCase().includes(searchTerm.toLowerCase())
         : true
-    ) || [];
+    ) ?? [];
 
+  // Reset pilihan sekolah saat ganti kategori atau search
   useEffect(() => {
     if (!category) return;
     if (!searchTerm) {
       setSelectedSchool(`${category.id}-0`);
       return;
     }
-
-    const matchingSchool = filteredSchools[0];
-    if (matchingSchool) {
-      setSelectedSchool(`${category.id}-${matchingSchool.index}`);
-    }
-  }, [selectedCategory, category, searchTerm]);
+    const match = filteredSchools[0];
+    if (match) setSelectedSchool(`${category.id}-${match.index}`);
+  }, [selectedCategory, searchTerm]); // eslint-disable-line
 
   const selectedSchoolData = schoolLookup[selectedSchool];
 
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
-
-  // ── Load votes dari Supabase ──────────────────────────────────────────────
+  // ── Fetch votes dari Supabase ─────────────────────────────────────────────
   const fetchVotes = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('votes')
-      .select('id, vote_count');
-
-    if (error) {
-      console.error('Gagal memuat votes:', error.message);
-      setIsVotesLoading(false);
-      return;
-    }
-
+    const { data, error } = await supabase.from('votes').select('id, vote_count');
+    if (error) { console.error(error); setIsVotesLoading(false); return; }
     const updated = { ...initialVotes };
     data.forEach((row) => {
-      if (updated[row.id] !== undefined) {
-        updated[row.id] = row.vote_count;
-      }
+      if (updated[row.id] !== undefined) updated[row.id] = row.vote_count;
     });
     setVotes(updated);
     setIsVotesLoading(false);
   }, []);
 
-  // Load Midtrans Snap script sekali saat mount
-  useEffect(() => {
-    const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
-    if (!clientKey) return;
-    const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute('data-client-key', clientKey);
-    script.async = true;
-    document.head.appendChild(script);
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
+  useEffect(() => { fetchVotes(); }, [fetchVotes]);
 
-  // Fetch awal saat komponen mount
-  useEffect(() => {
-    fetchVotes();
-  }, [fetchVotes]);
+  // ── Realtime subscription ─────────────────────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('votes-realtime')
-      .on(
-        'postgres_changes',
+      .on('postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'votes' },
         (payload) => {
           const { id, vote_count } = payload.new;
-          setVotes((current) => ({ ...current, [id]: vote_count }));
-        }
-      )
+          setVotes((cur) => ({ ...cur, [id]: vote_count }));
+        })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => supabase.removeChannel(channel);
   }, []);
 
-  const totalVotes = useMemo(
-    () => Object.values(votes).reduce((sum, value) => sum + value, 0),
-    [votes]
-  );
-
-  const totalRevenue = totalVotes * VOTE_PRICE;
-
+  // ── Computed ──────────────────────────────────────────────────────────────
   const categoryVotes = useMemo(
-    () => category.schools.reduce((sum, _school, index) => sum + votes[`${category.id}-${index}`], 0),
+    () => category?.schools.reduce(
+      (sum, _s, i) => sum + (votes[`${category.id}-${i}`] ?? 0), 0
+    ) ?? 0,
     [category, votes]
   );
 
-  const [lbFilter, setLbFilter] = useState('sdmi'); // sdmi | smpmts | sma
-
   const leaderboard = useMemo(() => {
-    // Pangkalan Terpadu (pondok/pesantren) ikut masuk SMP dan SMA
-    const terpadu = categories.find((c) => c.id === 'terpadu');
-    const terpaduIds = terpadu
-      ? terpadu.schools.map((_, i) => `terpadu-${i}`)
-      : [];
+    const terpadu    = categories.find((c) => c.id === 'terpadu');
+    const terpaduIds = terpadu?.schools.map((_, i) => `terpadu-${i}`) ?? [];
+    const targetIds  = new Set();
 
-    const targetIds = new Set();
-
-    // Tambahkan id dari kategori yang sesuai filter
     const primaryCat = categories.find((c) => c.id === lbFilter);
-    if (primaryCat) {
-      primaryCat.schools.forEach((_, i) => targetIds.add(`${lbFilter}-${i}`));
-    }
+    primaryCat?.schools.forEach((_, i) => targetIds.add(`${lbFilter}-${i}`));
 
-    // Pangkalan Terpadu ikut SMP dan SMA
     if (lbFilter === 'smpmts' || lbFilter === 'sma') {
       terpaduIds.forEach((id) => targetIds.add(id));
     }
 
     return Object.values(schoolLookup)
       .filter((s) => targetIds.has(s.id))
-      .map((s) => ({ ...s, votes: votes[s.id] }))
+      .map((s) => ({ ...s, votes: votes[s.id] ?? 0 }))
       .sort((a, b) => b.votes - a.votes)
       .slice(0, 10);
   }, [votes, lbFilter]);
 
-  const handleVoteSubmit = async () => {
-    setIsLoading(true);
-    setPaymentStatus('Memproses pembayaran...');
-
-    try {
-      const totalAmount = normalizedVoteCount * VOTE_PRICE;
-      const clientKey = import.meta.env.VITE_MIDTRANS_CLIENT_KEY;
-
-      if (!clientKey) {
-        throw new Error('Midtrans client key tidak ditemukan. Tambahkan VITE_MIDTRANS_CLIENT_KEY di file .env.');
-      }
-
-      const requestBody = {
-        orderId: `vote-${selectedSchool}-${Date.now()}`,
-        grossAmount: totalAmount,
-        itemDetails: [
-          {
-            id: selectedSchool,
-            price: VOTE_PRICE,
-            quantity: voteCount,
-            name: `Voting ${selectedSchoolData?.name ?? 'Pangkalan'}`,
-          },
-        ],
-        customerDetails: {
-          first_name: 'Pengguna',
-          email: 'customer@example.com',
-          phone: '081234567890',
-        },
-      };
-
-      const response = await fetch(`${BACKEND_URL}/create-transaction`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      // Baca body sebagai teks dulu — hindari crash jika body kosong
-      const responseText = await response.text();
-      let responseData;
-      try {
-        responseData = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        throw new Error(`Response tidak valid dari server (status ${response.status}).`);
-      }
-
-      if (!response.ok) {
-        throw new Error(responseData?.error || `Gagal membuat transaksi (status ${response.status}).`);
-      }
-
-      const data = responseData;
-
-      // Buka Snap popup — lebih baik daripada redirect untuk demo
-      window.snap.pay(data.token, {
-        onSuccess: () => {
-          setPaymentStatus('Pembayaran berhasil! Suara kamu sudah tercatat.');
-          setIsLoading(false);
-        },
-        onPending: () => {
-          setPaymentStatus('Pembayaran pending. Selesaikan pembayaran untuk mencatat suara.');
-          setIsLoading(false);
-        },
-        onError: () => {
-          setPaymentStatus('Pembayaran gagal. Silakan coba lagi.');
-          setIsLoading(false);
-        },
-        onClose: () => {
-          setPaymentStatus('Pembayaran dibatalkan.');
-          setIsLoading(false);
-        },
-      });
-    } catch (error) {
-      setPaymentStatus(error.message || 'Terjadi kesalahan pembayaran.');
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="page">
-      <div className="container">
-        <div className="frame">
+    <>
+      {/* Saweria Modal */}
+      {showModal && (
+        <SaweriaModal
+          school={selectedSchoolData}
+          onClose={() => setShowModal(false)}
+        />
+      )}
 
-          <header className="header">
-            <div className="eyebrow">Pangkalan Terfavorit</div>
-            <h1>Tanjak Emas 2026</h1>
-            <div className="subtitle">Bersatu dalam Suara, Menang dalam Perjuangan!</div>
-            <div className="divider">
-              <span className="line" />
-              <span>★</span>
-              <span className="line" />
-            </div>
-          </header>
+      <div className="page">
+        <div className="container">
+          <div className="frame">
 
-          {/* ── Pilih Kategori ── */}
-          <section className="panel category-panel">
-            <h2>Pilih Kategori</h2>
-            <p className="category-note" style={{ marginBottom: '18px' }}>
-              Pilih kategori agar daftar pangkalan lebih terfokus.
-            </p>
-            <div className="category-tabs">
-              {categories.map((item) => (
-                <button
-                  key={item.id}
-                  className={item.id === selectedCategory ? 'category-button active' : 'category-button'}
-                  onClick={() => setSelectedCategory(item.id)}
-                >
-                  <span>{item.title}</span>
-                  <small>{item.schools.length} pangkalan</small>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          {/* ── Daftar Pangkalan ── */}
-          <section className="panel school-panel">
-            <div className="school-panel-header">
-              <div>
-                <h2>{category?.title} &mdash; {category?.schools.length} Pangkalan</h2>
-                <p>{categoryVotes} suara terkumpul di kategori ini.</p>
+            <header className="header">
+              <div className="eyebrow">Pangkalan Terfavorit</div>
+              <h1>Tanjak Emas 2026</h1>
+              <div className="subtitle">Bersatu dalam Suara, Menang dalam Perjuangan</div>
+              <div className="divider">
+                <span className="line" />
+                <span>★</span>
+                <span className="line" />
               </div>
-            </div>
+            </header>
 
-            {category?.schools.length > 20 && (
-              <div className="school-search">
-                <label>Cari Pangkalan</label>
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Ketik nama sekolah atau lokasi..."
-                />
+            {/* Pilih Kategori */}
+            <section className="panel category-panel">
+              <h2>Pilih Kategori</h2>
+              <p className="category-note" style={{ marginBottom: '18px' }}>
+                Pilih kategori agar daftar pangkalan lebih terfokus.
+              </p>
+              <div className="category-tabs">
+                {categories.map((item) => (
+                  <button
+                    key={item.id}
+                    className={item.id === selectedCategory ? 'category-button active' : 'category-button'}
+                    onClick={() => setSelectedCategory(item.id)}
+                  >
+                    <span>{item.title}</span>
+                    <small>{item.schools.length} pangkalan</small>
+                  </button>
+                ))}
               </div>
-            )}
+            </section>
 
-            <div className="school-list-header">
-              <p>Pilih pangkalan dari daftar di bawah, lalu isi form voting.</p>
-            </div>
-
-            <div className="school-list">
-              {isVotesLoading ? (
-                <div className="loading-list">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="skeleton skeleton-card" />
-                  ))}
+            {/* Daftar Pangkalan */}
+            <section className="panel school-panel">
+              <div className="school-panel-header">
+                <div>
+                  <h2>{category?.title} &mdash; {category?.schools.length} Pangkalan</h2>
+                  <p>{categoryVotes} poin terkumpul di kategori ini.</p>
                 </div>
-              ) : filteredSchools.length > 0 ? (
-                filteredSchools.map(({ school, index }) => {
-                  const id = `${category.id}-${index}`;
-                  return (
-                    <article
-                      key={id}
-                      className={selectedSchool === id ? 'school-card active' : 'school-card'}
-                      onClick={() => setSelectedSchool(id)}
-                      style={{ animationDelay: `${index * 0.03}s` }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p>{school}</p>
-                        <span>{votes[id]} suara</span>
-                      </div>
-                      {selectedSchool === id && <span className="badge">Dipilih</span>}
-                    </article>
-                  );
-                })
-              ) : (
-                <div className="no-results">Tidak ada hasil yang cocok.</div>
+              </div>
+
+              {category?.schools.length > 20 && (
+                <div className="school-search">
+                  <label>Cari Pangkalan</label>
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Ketik nama sekolah atau lokasi..."
+                  />
+                </div>
               )}
-            </div>
-          </section>
 
-          {/* ── Form Voting ── */}
-          <section className="panel vote-panel">
-            <h2>Form Voting</h2>
-            <p className="panel-desc">Satu suara bernilai Rp 1.000.</p>
+              <div className="school-list-header">
+                <p>Pilih pangkalan lalu klik tombol dukung untuk memberi poin.</p>
+              </div>
 
-            <div className="vote-fields">
-              {/* preview pangkalan dipilih */}
+              <div className="school-list">
+                {isVotesLoading ? (
+                  <div className="loading-list">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="skeleton skeleton-card" />
+                    ))}
+                  </div>
+                ) : filteredSchools.length > 0 ? (
+                  filteredSchools.map(({ school, index }) => {
+                    const id = `${category.id}-${index}`;
+                    return (
+                      <article
+                        key={id}
+                        className={selectedSchool === id ? 'school-card active' : 'school-card'}
+                        onClick={() => setSelectedSchool(id)}
+                        style={{ animationDelay: `${index * 0.03}s` }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p>{school}</p>
+                          <span>{votes[id] ?? 0} poin</span>
+                        </div>
+                        {selectedSchool === id && <span className="badge">Dipilih</span>}
+                      </article>
+                    );
+                  })
+                ) : (
+                  <div className="no-results">Tidak ada hasil yang cocok.</div>
+                )}
+              </div>
+            </section>
+
+            {/* Tombol Dukung */}
+            <section className="panel vote-panel">
+              <h2>Beri Dukungan</h2>
+              <p className="panel-desc">
+                Setiap Rp 1.000 donasi di Saweria = 1 poin untuk pangkalan pilihanmu.
+              </p>
+
               {selectedSchoolData && (
-                <div className="vote-preview">
+                <div className="vote-preview" style={{ marginTop: '20px' }}>
                   <span>Pangkalan dipilih</span>
                   {selectedSchoolData.name}
                 </div>
               )}
 
-              <label>
-                Jumlah Suara
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  min="1"
-                  value={voteCount}
-                  onKeyDown={(e) => {
-                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                  }}
-                  onChange={(e) => setVoteCount(e.target.value.replace(/\D/g, ''))}
-                  onBlur={() => {
-                    if (!voteCount || Number(voteCount) < 1) setVoteCount('1');
-                  }}
-                />
-              </label>
+              <button
+                className="primary-button"
+                style={{ marginTop: '20px' }}
+                onClick={() => setShowModal(true)}
+                disabled={!selectedSchoolData}
+              >
+                Dukung via Saweria
+              </button>
+            </section>
 
-              <div className="payment-details">
-                <div>
-                  <strong>Harga per suara</strong>
-                  <span>Rp {VOTE_PRICE.toLocaleString('id-ID')}</span>
-                </div>
-                <div>
-                  <strong>Total bayar</strong>
-                  <span>Rp {(normalizedVoteCount * VOTE_PRICE).toLocaleString('id-ID')}</span>
-                </div>
+            {/* Leaderboard */}
+            <section className="panel leaderboard-panel">
+              <div className="leaderboard-header">
+                <h2>Leaderboard Teratas</h2>
+                <p>Diperbarui secara langsung dari semua kategori.</p>
               </div>
-            </div>
 
-            <button
-              className={`primary-button${isLoading ? ' loading' : ''}`}
-              onClick={handleVoteSubmit}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Memproses...' : 'Bayar & Konfirmasi Suara'}
-            </button>
-
-            {paymentStatus && <p className="payment-status">{paymentStatus}</p>}
-          </section>
-
-          {/* ── Leaderboard ── */}
-          <section className="panel leaderboard-panel">
-            <div className="leaderboard-header">
-              <h2>Leaderboard Teratas</h2>
-              <p>Diperbarui secara langsung dari semua kategori.</p>
-            </div>
-
-            <div className="lb-filter-tabs">
-              <button
-                className={lbFilter === 'sdmi' ? 'lb-filter-btn active' : 'lb-filter-btn'}
-                onClick={() => setLbFilter('sdmi')}
-              >
-                SD/MI
-              </button>
-              <button
-                className={lbFilter === 'smpmts' ? 'lb-filter-btn active' : 'lb-filter-btn'}
-                onClick={() => setLbFilter('smpmts')}
-              >
-                SMP/MTs
-              </button>
-              <button
-                className={lbFilter === 'sma' ? 'lb-filter-btn active' : 'lb-filter-btn'}
-                onClick={() => setLbFilter('sma')}
-              >
-                SMA/MA/SMK
-              </button>
-            </div>
-
-            <div className="leaderboard-grid">
-              {leaderboard.length === 0 ? (
-                <div className="no-results">Belum ada data untuk filter ini.</div>
-              ) : (
-                leaderboard.map((item, index) => (
-                  <article
-                    key={item.id}
-                    className="leaderboard-card"
-                    style={{ animationDelay: `${index * 0.05}s` }}
+              <div className="lb-filter-tabs">
+                {[
+                  { id: 'sdmi',   label: 'SD/MI' },
+                  { id: 'smpmts', label: 'SMP/MTs' },
+                  { id: 'sma',    label: 'SMA/MA/SMK' },
+                ].map(({ id, label }) => (
+                  <button
+                    key={id}
+                    className={lbFilter === id ? 'lb-filter-btn active' : 'lb-filter-btn'}
+                    onClick={() => setLbFilter(id)}
                   >
-                    <div className="lb-left">
-                      <span className="rank">{index + 1}</span>
-                      <p>{item.name}</p>
-                    </div>
-                    <div className="lb-right">
-                      <span>{item.votes.toLocaleString('id-ID')}</span>
-                      <small>pts</small>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-          </section>
+                    {label}
+                  </button>
+                ))}
+              </div>
 
-          <footer className="site-footer">
-            <p className="footer-copy">&copy; 2026 Badang Perkasa. Seluruh hak cipta dilindungi.</p>
-            <div className="footer-links">
-              <a
-                href="https://www.instagram.com/pramukabadangperkasa?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-link"
-              >
-                Pramuka Badang Perkasa
-              </a>
-              <span className="footer-sep">·</span>
-              <a
-                href="https://www.instagram.com/kodeka2025/?utm_source=ig_web_button_share_sheet"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="footer-link"
-              >
-                Partner Kodeka 2025
-              </a>
-            </div>
-          </footer>
+              <div className="leaderboard-grid">
+                {leaderboard.length === 0 ? (
+                  <div className="no-results">Belum ada data untuk filter ini.</div>
+                ) : (
+                  leaderboard.map((item, index) => (
+                    <article
+                      key={item.id}
+                      className="leaderboard-card"
+                      style={{ animationDelay: `${index * 0.05}s` }}
+                    >
+                      <div className="lb-left">
+                        <span className="rank">{index + 1}</span>
+                        <p>{item.name}</p>
+                      </div>
+                      <div className="lb-right">
+                        <span>{item.votes.toLocaleString('id-ID')}</span>
+                        <small>pts</small>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <footer className="site-footer">
+              <p className="footer-copy">&copy; 2026 Badang Perkasa. Seluruh hak cipta dilindungi.</p>
+              <div className="footer-links">
+                <a
+                  href="https://www.instagram.com/pramukabadangperkasa?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-link"
+                >
+                  Pramuka Badang Perkasa
+                </a>
+                <span className="footer-sep">·</span>
+                <a
+                  href="https://www.instagram.com/kodeka2025/?utm_source=ig_web_button_share_sheet"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-link"
+                >
+                  Partner Kodeka 2025
+                </a>
+              </div>
+            </footer>
+
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

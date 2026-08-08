@@ -2,23 +2,67 @@ import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import SplashScreen from './SplashScreen';
+import PaymentSuccess from './PaymentSuccess';
+import PaymentFailed from './PaymentFailed';
+import AdminLogin from './AdminLogin';
+import AdminPanel from './AdminPanel';
 import './index.css';
 
-function Root() {
-  const [splashDone, setSplashDone] = useState(false);
+const path = window.location.pathname;
 
-  return (
-    <>
-      {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
-      <div style={splashDone ? undefined : { visibility: 'hidden', pointerEvents: 'none' }}>
-        <App />
-      </div>
-    </>
+// ── Halaman Admin ─────────────────────────────────────────────────────────────
+if (path === '/admin' || path === '/admin-login') {
+  function AdminRoot() {
+    const [admin, setAdmin] = useState(() => {
+      try {
+        const saved = sessionStorage.getItem('admin_session');
+        return saved ? JSON.parse(saved) : null;
+      } catch {
+        return null;
+      }
+    });
+
+    const handleLogin = (adminData) => setAdmin(adminData);
+
+    const handleLogout = () => {
+      sessionStorage.removeItem('admin_session');
+      setAdmin(null);
+    };
+
+    if (!admin) return <AdminLogin onLogin={handleLogin} />;
+    return <AdminPanel admin={admin} onLogout={handleLogout} />;
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode><AdminRoot /></React.StrictMode>
+  );
+
+// ── Halaman Payment Result ────────────────────────────────────────────────────
+} else if (path === '/payment-success') {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode><PaymentSuccess /></React.StrictMode>
+  );
+
+} else if (path === '/payment-failed') {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode><PaymentFailed /></React.StrictMode>
+  );
+
+// ── Dashboard utama dengan splash ─────────────────────────────────────────────
+} else {
+  function Root() {
+    const [splashDone, setSplashDone] = useState(false);
+    return (
+      <>
+        {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
+        <div style={splashDone ? undefined : { visibility: 'hidden', pointerEvents: 'none' }}>
+          <App />
+        </div>
+      </>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode><Root /></React.StrictMode>
   );
 }
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <Root />
-  </React.StrictMode>
-);
