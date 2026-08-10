@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+    RewriteBase /
+
+    # Langsung serve file/folder yang memang ada (assets, favicon, dll)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Semua route SPA (/admin, /payment-success, dll) → index.html
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+# Fallback jika mod_rewrite tidak aktif
+<IfModule !mod_rewrite.c>
+    ErrorDocument 404 /index.html
+</IfModule>

@@ -3,8 +3,6 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    // Semua route yang tidak dikenali dikembalikan ke index.html (SPA fallback)
-    historyApiFallback: true,
-  },
+  // appType: 'spa' adalah default Vite — semua route fallback ke index.html
+  // baik saat `npm run dev` maupun `npm run preview`
 });

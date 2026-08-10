@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from './supabase.js';
 import SaweriaModal from './SaweriaModal.jsx';
+import PenampilanSection from './PenampilanSection.jsx';
 
 const categories = [
   {
@@ -376,6 +377,9 @@ function App() {
                 )}
               </div>
             </section>
+
+            {/* Penampilan Tim */}
+            <PenampilanSection />
 
             <footer className="site-footer">
               <p className="footer-copy">&copy; 2026 Badang Perkasa. Seluruh hak cipta dilindungi.</p>
