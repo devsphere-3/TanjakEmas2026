@@ -179,7 +179,7 @@ export default function AdminPanel({ admin, onLogout }) {
   // ── Hapus admin ───────────────────────────────────────────────────────────
   const handleDeleteAdmin = async (id, username) => {
     if (!window.confirm(`Hapus admin "${username}"?`)) return;
-    const { error } = await supabase.from('admins').delete().eq('id', id);
+    const { error } = await supabase.rpc('delete_admin', { p_id: id });
     if (error) { alert(error.message); return; }
     setAdmins((prev) => prev.filter((a) => a.id !== id));
   };

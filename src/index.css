@@ -2651,3 +2651,420 @@ body::before {
   .penampilan-cat-tabs { gap: 5px; }
   .penam-cat-btn { font-size: 0.74rem; padding: 10px 4px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PENAMPILAN PAGE — halaman penuh /penampilan
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shell halaman ──────────────────────────────────────────────────────── */
+.penam-page {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% -10%, rgba(212, 175, 55, 0.10) 0%, transparent 60%),
+    linear-gradient(180deg, #07100e 0%, #040807 100%);
+  overflow-x: hidden;
+}
+
+.penam-page-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  /* Blur ringan karena ada coming soon overlay di atas */
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.penam-header {
+  margin-bottom: 36px;
+}
+
+.penam-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.penam-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    border-color var(--t-fast) var(--ease);
+}
+
+.penam-back-link:hover {
+  color: var(--text-light);
+  background: var(--glass-hover);
+  border-color: rgba(212, 175, 55, 0.22);
+}
+
+.penam-logo {
+  height: 40px;
+  width: auto;
+  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.30));
+}
+
+.penam-title-block {
+  text-align: center;
+}
+
+.penam-eyebrow {
+  font-size: 11px;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+  color: rgba(247, 232, 164, 0.65);
+  margin-bottom: 10px;
+}
+
+.penam-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(26px, 6vw, 40px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(90deg, #fff8e0 0%, #d4af37 30%, #fff8e0 55%, #d4af37 75%, #b88f22 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmerText 5s linear infinite;
+  margin-bottom: 12px;
+}
+
+.penam-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ── Pilih Kategori ─────────────────────────────────────────────────────── */
+.penam-cat-section {
+  margin-bottom: 28px;
+}
+
+.penam-cat-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.penam-cat-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+/* reuse .penam-cat-btn dari CSS lama — sudah ada */
+
+.penam-cat-btn small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-sub);
+  margin-top: 3px;
+}
+
+.penam-cat-btn.active small {
+  color: var(--gold-soft);
+  opacity: 0.7;
+}
+
+/* ── Empty state ────────────────────────────────────────────────────────── */
+.penam-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 64px 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+/* ── Konten grid ────────────────────────────────────────────────────────── */
+.penam-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  animation: penamIn var(--t-med) var(--ease) both;
+}
+
+/* ── Divider label ──────────────────────────────────────────────────────── */
+.penam-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.penam-divider .line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.25), transparent);
+}
+
+.penam-divider-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  opacity: 0.65;
+  white-space: nowrap;
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────── */
+.penam-footer {
+  text-align: center;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--glass-border);
+  font-size: 11px;
+  color: var(--text-sub);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .penam-page-inner { padding: 20px 14px 60px; }
+
+  .penam-cat-tabs {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .penam-header-top { margin-bottom: 20px; }
+}
+
+@media (max-width: 420px) {
+  .penam-cat-tabs { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMING SOON OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes csOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes csCardIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes csIconPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px  rgba(212, 175, 55, 0.25)); transform: scale(1); }
+  50%       { filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.55)); transform: scale(1.06); }
+}
+
+.coming-soon-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  /* Kaca buram — backdrop-filter di sini karena konten di balik overlay */
+  background: rgba(7, 16, 14, 0.72);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  animation: csOverlayIn 0.45s var(--ease) both;
+}
+
+.coming-soon-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 44px 40px 40px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.08),
+    0 32px 80px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+  animation: csCardIn 0.55s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.coming-soon-icon {
+  color: var(--gold-soft);
+  margin-bottom: 24px;
+  animation: csIconPulse 3s ease-in-out infinite;
+}
+
+.coming-soon-eyebrow {
+  font-size: 11px;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+  color: rgba(247, 232, 164, 0.60);
+  margin-bottom: 10px;
+}
+
+.coming-soon-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(28px, 7vw, 42px);
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #fff8e0 0%,
+    #d4af37 30%,
+    #fff8e0 55%,
+    #d4af37 75%,
+    #b88f22 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmerText 4s linear infinite;
+  margin-bottom: 16px;
+}
+
+.coming-soon-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 340px;
+  margin-bottom: 32px;
+}
+
+.coming-soon-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 14px 28px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #c9a227 0%, #f0d060 50%, #c9a227 100%);
+  background-size: 200% auto;
+  color: #07100e;
+  font-weight: 700;
+  font-size: 0.90rem;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition:
+    transform var(--t-fast) var(--ease),
+    box-shadow var(--t-med) var(--ease),
+    background-position var(--t-med) var(--ease);
+}
+
+.coming-soon-back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px rgba(212, 175, 55, 0.35);
+  background-position: right center;
+}
+
+.coming-soon-back-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .coming-soon-card {
+    padding: 36px 24px 32px;
+    border-radius: 24px;
+  }
+  .coming-soon-title { font-size: 28px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PENAMPILAN BANNER — di dashboard App.jsx
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.penampilan-banner-panel {
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 55, 0.08) 0%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border-color: rgba(212, 175, 55, 0.20);
+  padding: 24px 28px;
+}
+
+.penampilan-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.penampilan-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.penampilan-banner-eyebrow {
+  font-size: 11px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(247, 232, 164, 0.55);
+  margin-bottom: 6px;
+}
+
+.penampilan-banner-text h2 {
+  margin-bottom: 6px;
+}
+
+.penampilan-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 13px 22px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #c9a227 0%, #f0d060 50%, #c9a227 100%);
+  background-size: 200% auto;
+  color: #07100e;
+  font-weight: 700;
+  font-size: 0.88rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    transform var(--t-fast) var(--ease),
+    box-shadow var(--t-med) var(--ease),
+    background-position var(--t-med) var(--ease);
+}
+
+.penampilan-banner-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(212, 175, 55, 0.32);
+  background-position: right center;
+}
+
+.penampilan-banner-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 520px) {
+  .penampilan-banner-inner { flex-direction: column; align-items: flex-start; }
+  .penampilan-banner-btn   { width: 100%; justify-content: center; }
+}

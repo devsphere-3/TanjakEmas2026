@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { supabase } from './supabase.js';
 import SaweriaModal from './SaweriaModal.jsx';
-import PenampilanSection from './PenampilanSection.jsx';
 
 const categories = [
   {
@@ -12,6 +11,7 @@ const categories = [
       'MI Negeri 1 Trenggalek, Jawa Timur',
       'MINU Al Hikmah Tajinan, Kab. Malang, Jawa Timur',
       'MI Sunan Pandanaran, Sleman, DI Yogyakarta',
+      'SD AL ARAF ISLAMIC SCHOOL',
       'SD Ibrahimy, Sumenep, Jawa Timur',
       'SD Islam Salafiyah, Kab. Malang, Jawa Timur',
       'SD Negeri 2 Pakisjajar, Kab. Malang, Jawa Timur',
@@ -378,8 +378,26 @@ function App() {
               </div>
             </section>
 
-            {/* Penampilan Tim */}
-            <PenampilanSection />
+            {/* Banner Penampilan Tim */}
+            <section className="panel penampilan-banner-panel">
+              <div className="penampilan-banner-inner">
+                <div className="penampilan-banner-text">
+                  <div className="penampilan-banner-eyebrow">Tanjak Emas 2026</div>
+                  <h2>Penampilan Tim</h2>
+                  <p className="panel-desc">
+                    Saksikan aksi terbaik setiap pangkalan dalam dua kategori lomba —
+                    Yel-Yel dan Semaphore Dance.
+                  </p>
+                </div>
+                <a href="/penampilan" className="penampilan-banner-btn">
+                  Lihat Penampilan
+                  <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                    <path fillRule="evenodd" clipRule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" />
+                  </svg>
+                </a>
+              </div>
+            </section>
 
             <footer className="site-footer">
               <p className="footer-copy">&copy; 2026 Badang Perkasa. Seluruh hak cipta dilindungi.</p>

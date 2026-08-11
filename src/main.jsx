@@ -6,6 +6,7 @@ import PaymentSuccess from './PaymentSuccess';
 import PaymentFailed from './PaymentFailed';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
+import PenampilanPage from './PenampilanPage';
 import './index.css';
 
 const path = window.location.pathname;
@@ -35,6 +36,12 @@ if (path === '/admin' || path === '/admin-login') {
 
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode><AdminRoot /></React.StrictMode>
+  );
+
+// ── Halaman Penampilan Tim ────────────────────────────────────────────────────
+} else if (path === '/penampilan') {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode><PenampilanPage /></React.StrictMode>
   );
 
 // ── Halaman Payment Result ────────────────────────────────────────────────────
