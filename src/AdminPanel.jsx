@@ -44,9 +44,19 @@ export default function AdminPanel({ admin, onLogout }) {
     setSchoolsLoading(true);
     const { data, error } = await supabase
       .from('votes')
-      .select('id, school_name, category, vote_count')
-      .order('school_name', { ascending: true });
-    if (!error) setSchools(data ?? []);
+      .select('id, school_name, category, vote_count');
+    if (!error) {
+      // Sort: group by category prefix, lalu by nomor index (numerik)
+      const catOrder = { 'sdmi': 0, 'smpmts': 1, 'sma': 2, 'terpadu': 3 };
+      const sorted = (data ?? []).sort((a, b) => {
+        const [aCat, aNum] = a.id.split('-');
+        const [bCat, bNum] = b.id.split('-');
+        const catDiff = (catOrder[aCat] ?? 99) - (catOrder[bCat] ?? 99);
+        if (catDiff !== 0) return catDiff;
+        return Number(aNum) - Number(bNum);
+      });
+      setSchools(sorted);
+    }
     setSchoolsLoading(false);
   }, []);
 
