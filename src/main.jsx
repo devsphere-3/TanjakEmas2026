@@ -7,9 +7,13 @@ import PaymentFailed from './PaymentFailed';
 import AdminLogin from './AdminLogin';
 import AdminPanel from './AdminPanel';
 import PenampilanPage from './PenampilanPage';
+import MaintenanceOverlay from './MaintenanceOverlay';
 import './index.css';
 
 const path = window.location.pathname;
+
+// Admin tidak kena maintenance overlay — panitia tetap bisa bekerja
+const isAdminRoute = path === '/admin' || path === '/admin-login';
 
 // ── Halaman Admin ─────────────────────────────────────────────────────────────
 if (path === '/admin' || path === '/admin-login') {
@@ -41,18 +45,27 @@ if (path === '/admin' || path === '/admin-login') {
 // ── Halaman Penampilan Tim ────────────────────────────────────────────────────
 } else if (path === '/penampilan') {
   ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode><PenampilanPage /></React.StrictMode>
+    <React.StrictMode>
+      {!isAdminRoute && <MaintenanceOverlay />}
+      <PenampilanPage />
+    </React.StrictMode>
   );
 
 // ── Halaman Payment Result ────────────────────────────────────────────────────
 } else if (path === '/payment-success') {
   ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode><PaymentSuccess /></React.StrictMode>
+    <React.StrictMode>
+      {!isAdminRoute && <MaintenanceOverlay />}
+      <PaymentSuccess />
+    </React.StrictMode>
   );
 
 } else if (path === '/payment-failed') {
   ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode><PaymentFailed /></React.StrictMode>
+    <React.StrictMode>
+      {!isAdminRoute && <MaintenanceOverlay />}
+      <PaymentFailed />
+    </React.StrictMode>
   );
 
 // ── Dashboard utama dengan splash ─────────────────────────────────────────────
@@ -61,6 +74,7 @@ if (path === '/admin' || path === '/admin-login') {
     const [splashDone, setSplashDone] = useState(false);
     return (
       <>
+        <MaintenanceOverlay />
         {!splashDone && <SplashScreen onDone={() => setSplashDone(true)} />}
         <div style={splashDone ? undefined : { visibility: 'hidden', pointerEvents: 'none' }}>
           <App />

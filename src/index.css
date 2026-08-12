@@ -3068,3 +3068,197 @@ body::before {
   .penampilan-banner-inner { flex-direction: column; align-items: flex-start; }
   .penampilan-banner-btn   { width: 100%; justify-content: center; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAINTENANCE OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes maintOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes maintCardIn {
+  from { opacity: 0; transform: translateY(32px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+@keyframes maintIconSpin {
+  0%   { transform: rotate(0deg)   scale(1);    filter: drop-shadow(0 0 8px  rgba(212,175,55,0.25)); }
+  50%  { transform: rotate(15deg)  scale(1.08); filter: drop-shadow(0 0 22px rgba(212,175,55,0.55)); }
+  100% { transform: rotate(0deg)   scale(1);    filter: drop-shadow(0 0 8px  rgba(212,175,55,0.25)); }
+}
+
+/* ── Wrapper fullscreen ─────────────────────────────────────────────────── */
+.maint-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background:
+    radial-gradient(ellipse 80% 45% at 50% -5%, rgba(212,175,55,0.12) 0%, transparent 60%),
+    rgba(7, 16, 14, 0.96);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  animation: maintOverlayIn 0.4s var(--ease) both;
+}
+
+/* ── Partikel latar ─────────────────────────────────────────────────────── */
+.maint-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.maint-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.45), transparent 70%);
+  animation: particleDrift linear infinite;
+  width:  calc(4px + calc(var(--i) * 3px));
+  height: calc(4px + calc(var(--i) * 3px));
+  left:   calc(5% + calc(var(--i) * 11%));
+  bottom: -8%;
+  animation-duration:  calc(6s + calc(var(--i) * 0.8s));
+  animation-delay:     calc(var(--i) * 0.5s);
+  filter: blur(1px);
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+.maint-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  padding: 48px 40px 44px;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow:
+    0 0 0 1px rgba(212,175,55,0.07),
+    0 40px 100px rgba(0, 0, 0, 0.60),
+    inset 0 1px 0 rgba(255,255,255,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: maintCardIn 0.6s 0.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Icon ───────────────────────────────────────────────────────────────── */
+.maint-icon {
+  color: var(--gold-soft);
+  margin-bottom: 28px;
+  animation: maintIconSpin 4s ease-in-out infinite;
+}
+
+/* ── Teks ───────────────────────────────────────────────────────────────── */
+.maint-eyebrow {
+  font-size: 11px;
+  letter-spacing: 7px;
+  text-transform: uppercase;
+  color: rgba(247, 232, 164, 0.60);
+  margin-bottom: 10px;
+}
+
+.maint-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    #fff8e0 0%, #d4af37 30%, #fff8e0 55%, #d4af37 75%, #b88f22 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmerText 4s linear infinite;
+  margin-bottom: 16px;
+}
+
+.maint-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.75;
+  max-width: 360px;
+  margin-bottom: 32px;
+}
+
+.maint-desc strong {
+  color: var(--gold-soft);
+  font-weight: 600;
+}
+
+/* ── Countdown ──────────────────────────────────────────────────────────── */
+.maint-countdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding: 20px 28px;
+  border-radius: var(--radius-lg);
+  background: rgba(212, 175, 55, 0.07);
+  border: 1px solid rgba(212, 175, 55, 0.16);
+}
+
+.maint-time-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 52px;
+}
+
+.maint-time-num {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(28px, 6vw, 38px);
+  font-weight: 700;
+  color: var(--gold-soft);
+  line-height: 1;
+  letter-spacing: 2px;
+  /* Pakai tabular numbers agar tidak goyang */
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.maint-time-label {
+  font-size: 0.70rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+
+.maint-sep {
+  font-family: 'Cinzel', serif;
+  font-size: 2rem;
+  color: rgba(212, 175, 55, 0.35);
+  line-height: 1;
+  margin-bottom: 18px; /* align dengan angka, offset label */
+  user-select: none;
+}
+
+/* ── Catatan kecil ──────────────────────────────────────────────────────── */
+.maint-note {
+  font-size: 0.82rem;
+  color: var(--text-sub);
+  letter-spacing: 0.3px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .maint-card {
+    padding: 36px 22px 32px;
+    border-radius: 24px;
+  }
+
+  .maint-countdown { padding: 16px 18px; gap: 6px; }
+  .maint-time-block { min-width: 42px; }
+  .maint-sep { font-size: 1.6rem; }
+}
