@@ -1,7 +1,7 @@
 // ─── Toggle maintenance ───────────────────────────────────────────────────────
 // true  = website ditutup (tampilkan overlay)
 // false = website terbuka normal
-export const MAINTENANCE_MODE = true;
+export const MAINTENANCE_MODE = false;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
