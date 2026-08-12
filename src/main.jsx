@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import App from './App';
 import SplashScreen from './SplashScreen';
 import PaymentSuccess from './PaymentSuccess';
@@ -39,7 +40,7 @@ if (path === '/admin' || path === '/admin-login') {
   }
 
   ReactDOM.createRoot(document.getElementById('root')).render(
-    <React.StrictMode><AdminRoot /></React.StrictMode>
+    <React.StrictMode><AdminRoot /><Analytics /></React.StrictMode>
   );
 
 // ── Halaman Penampilan Tim ────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ if (path === '/admin' || path === '/admin-login') {
     <React.StrictMode>
       {!isAdminRoute && <MaintenanceOverlay />}
       <PenampilanPage />
+      <Analytics />
     </React.StrictMode>
   );
 
@@ -57,6 +59,7 @@ if (path === '/admin' || path === '/admin-login') {
     <React.StrictMode>
       {!isAdminRoute && <MaintenanceOverlay />}
       <PaymentSuccess />
+      <Analytics />
     </React.StrictMode>
   );
 
@@ -65,6 +68,7 @@ if (path === '/admin' || path === '/admin-login') {
     <React.StrictMode>
       {!isAdminRoute && <MaintenanceOverlay />}
       <PaymentFailed />
+      <Analytics />
     </React.StrictMode>
   );
 
@@ -79,6 +83,7 @@ if (path === '/admin' || path === '/admin-login') {
         <div style={splashDone ? undefined : { visibility: 'hidden', pointerEvents: 'none' }}>
           <App />
         </div>
+        <Analytics />
       </>
     );
   }
