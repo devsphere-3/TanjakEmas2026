@@ -1,324 +1,264 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import logoWebp from './assets/TanjakEmas_logo.webp';
 
-// ─── Data lengkap semua sekolah ──────────────────────────────────────────────
-// Isi videoId saat peserta mengirimkan video.
-// Format: videoId: 'ID_YOUTUBE' (dari URL: youtube.com/watch?v=ID_YOUTUBE)
-// Kosongkan dengan '' jika belum tersedia.
-
-const penampilanData = {
-  sdmi: {
-    label: 'SD/MI',
-    schools: [
-      'MI Miftahul Huda Pandantoyo, Nganjuk, Jawa Timur',
-      'MI Negeri 1 Trenggalek, Jawa Timur',
-      'MINU Al Hikmah Tajinan, Kab. Malang, Jawa Timur',
-      'MI Sunan Pandanaran, Sleman, DI Yogyakarta',
-      'SD AL ARAF ISLAMIC SCHOOL',
-      'SD Ibrahimy, Sumenep, Jawa Timur',
-      'SD Islam Salafiyah, Kab. Malang, Jawa Timur',
-      'SD Negeri 2 Pakisjajar, Kab. Malang, Jawa Timur',
-      'SD Negeri 4 Reno Basuki, Lampung Tengah, Lampung',
-      'SD Negeri Jurang Mangu Barat 01, Tangerang Selatan, Banten',
-      'SDIT Nur El Qolam, Serang, Banten',
-    ],
-    yelYel: {},       // { schoolName: 'videoId' }
-    semaphoreDance: {},
-  },
-  smpmts: {
-    label: 'SMP/MTs',
-    schools: [
-      'MTs Islamiyah Nguwok, Lamongan, Jawa Timur',
-      'MTs Negeri 1 Jepara, Jawa Tengah',
-      'MTs Negeri 1 Kab. Madiun, Jawa Timur',
-      'MTs Negeri 2 Madiun, Jawa Timur',
-      'MTs Negeri 2 Nganjuk, Jawa Timur',
-      'MTs Negeri 2 Pekanbaru, Riau',
-      'MTs Negeri 6 Cirebon, Jawa Barat',
-      'MTs Surya Buana, Malang, Jawa Timur',
-      'MTs Wali Songo, Melaya, Jembrana, Bali',
-      'SMP ABBS, Surakarta, Jawa Tengah',
-      'SMP An Nur Al Anwar, Malang, Jawa Timur',
-      'SMP Ibrahimy, Sumenep, Jawa Timur',
-      'SMP Islam Plus Alfatih, Medan, Sumatera Utara',
-      'SMP Islam Roushon Fikr, Jombang, Jawa Timur',
-      'SMP Islam Teluk Jambe, Karawang, Jawa Barat',
-      'SMP IT Cordova, Samarinda, Kalimantan Timur',
-      'SMP IT Tahfidzul Quran Ulil Albab, Karanganyar, Jawa Tengah',
-      'SMP Negeri 1 Banyuwangi, Jawa Timur',
-      'SMP Negeri 1 Batealit, Jepara, Jawa Tengah',
-      'SMP Negeri 1 Kertosono, Nganjuk, Jawa Timur',
-      'SMP Negeri 1 Ngetos, Nganjuk, Jawa Timur',
-      'SMP Negeri 1 Sawa, Konawe Utara, Sulawesi Tenggara',
-      'SMP Negeri 11 Pasuruan, Jawa Timur',
-      'SMP Negeri 2 Bangil, Pasuruan, Jawa Timur',
-      'SMP Negeri 2 Mojo, Kediri, Jawa Timur',
-      'SMP Negeri 2 Ngetos, Nganjuk, Jawa Timur',
-      'SMP Negeri 2 Taman, Sidoarjo, Jawa Timur',
-      'SMP Negeri 3 Purwodadi, Jawa Tengah',
-      'SMP Negeri 4 Balikpapan, Kalimantan Timur',
-      'SMP Negeri 5 Karawang, Jawa Barat',
-      'SMP Negeri 7 Kota Madiun, Jawa Timur',
-      'SMP Negeri 7 Surakarta, Jawa Tengah',
-      'SMP Negeri 9 Jambi',
-      'SMP Negeri 37 Batam, Kepulauan Riau',
-      'SMP Negeri 44 Batam, Kepulauan Riau',
-      'SMP Negeri Giriyoso, Musi Rawas, Sumatera Selatan',
-    ],
-    yelYel: {},
-    semaphoreDance: {},
-  },
-  sma: {
-    label: 'SMA/MA/SMK',
-    schools: [
-      'MA Al I\u2019Dadiyyah Bahrul Ulum, Jombang, Jawa Timur',
-      'MA Al Khidmah, Ngronggot, Nganjuk, Jawa Timur',
-      'MA Negeri 1 Batam, Kepulauan Riau',
-      'MA Negeri 1 Magetan, Jawa Timur',
-      'MA Negeri 1 Surakarta, Jawa Tengah',
-      'MA Negeri 4 Jakarta Selatan, DKI Jakarta',
-      'MA Negeri Paser, Kalimantan Timur',
-      'MA Nurul Hasan, Melaya, Jembrana, Bali',
-      'MAN 2 Tulungagung, Jawa Timur',
-      'SAKA Wanabakti Sumba Timur (Penegak), Nusa Tenggara Timur',
-      'SMA IT Assyifa Boarding School, Subang, Jawa Barat',
-      'SMA IT Darul Quran, Kab. Bogor, Jawa Barat',
-      'SMA Negeri 1 Malinau, Kalimantan Utara',
-      'SMA Negeri 1 Prambanan, Klaten, Jawa Tengah',
-      'SMA Negeri 1 Tanjung Sari, Lampung Selatan, Lampung',
-      'SMA Negeri 6 Balikpapan, Kalimantan Timur',
-      'SMA S Perintis 1 Bandar Lampung, Lampung',
-      'SMA Wawonii Utara, Konawe Kepulauan, Sulawesi Tenggara',
-      'SMK Islam Sumedang, Jawa Barat',
-      'SMK Negeri 1 Abang, Karangasem, Bali',
-      'SMK Negeri 1 Kubutambahan, Buleleng, Bali',
-      'SMK Negeri 2 Madiun, Jawa Timur',
-      'SMK Negeri 19 Jakarta Pusat, DKI Jakarta',
-      'SMK Negeri 68 Jakarta',
-      'SMK Syubbanul Wathon, Secang, Magelang, Jawa Tengah',
-      'SMK Yadika 2 Grogol Petamburan, Jakarta Barat, DKI Jakarta',
-    ],
-    yelYel: {},
-    semaphoreDance: {},
-  },
-  terpadu: {
-    label: 'Pangkalan Terpadu',
-    schools: [
-      'Pesantren Terpadu Darrutaqwa, Kab. Bogor, Jawa Barat',
-    ],
-    yelYel: {},
-    semaphoreDance: {},
-  },
-};
-
-const KATEGORI_TABS = [
-  { id: 'sdmi',    label: 'SD/MI' },
-  { id: 'smpmts',  label: 'SMP/MTs' },
-  { id: 'sma',     label: 'SMA/MA/SMK' },
-  { id: 'terpadu', label: 'Terpadu' },
+// ─── Data Video SD ────────────────────────────────────────────────────────────
+const videoSD = [
+  { nomor: 1,  kode: 'S001',  kategori: 'SD', videoId: 'JaJYqBowvvk' },
+  { nomor: 2,  kode: 'S001',  kategori: 'SD', videoId: 'fDGnyMXzsdk' },
+  { nomor: 3,  kode: 'S002',  kategori: 'SD', videoId: '8zguNMV__Ig' },
+  { nomor: 4,  kode: 'S002',  kategori: 'SD', videoId: 'nXzlfXMbIyE' },
+  { nomor: 5,  kode: 'S004A', kategori: 'SD', videoId: 'rYnp6e0qBLI' },
+  { nomor: 6,  kode: 'S004B', kategori: 'SD', videoId: 'XSQ4f9ZylIE' },
+  { nomor: 7,  kode: 'S006',  kategori: 'SD', videoId: 'Da0G-Rz-TvM' },
+  { nomor: 8,  kode: 'S007',  kategori: 'SD', videoId: 'HiSXlRRQSfc' },
+  { nomor: 9,  kode: 'S007',  kategori: 'SD', videoId: '59kpoJgEmmM' },
+  { nomor: 10, kode: 'S008',  kategori: 'SD', videoId: '9cW9PWG7mxk' },
+  { nomor: 11, kode: 'S009A', kategori: 'SD', videoId: 'Gpzzxhp42Mk' },
+  { nomor: 12, kode: 'S009B', kategori: 'SD', videoId: '7VXjGbjCcq0' },
+  { nomor: 13, kode: 'S010',  kategori: 'SD', videoId: 'MBBgTGc9Mas' },
+  { nomor: 14, kode: 'S010',  kategori: 'SD', videoId: 'ckK79t3OlQU' },
 ];
 
-// ─── Kartu video ─────────────────────────────────────────────────────────────
-function VideoCard({ school, videoId, index }) {
-  const [loaded, setLoaded] = useState(false);
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-  const thumbUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+const videoSMP = [
+  ['G002','RGYhvTHzHmg'],['G002','9zBhf6v1Ma4'],['G005','vbdh_YkkuvI'],
+  ['G006','5KYFeHpPg9Y'],['G006','SWPNegXHQS8'],['G007','kErw_y94iKk'],
+  ['G008','FQyq_SZlFXU'],['G009','hbVWgOzAHbc'],['G009','XtlkOZU-3GY'],
+  ['G010','c1EShvcbcVg'],['G010','8b78ALAfQ6o'],['G011A','KUbREgnNfRA'],
+  ['G011B','oF-X9Cpf47M'],['G013','DRNyqNxdeJw'],['G013','8JA_DHXlWVk'],
+  ['G014','uwpqPydw2PY'],['G014','sSroSfLCpfM'],['G015','hwrzXTyU_7w'],
+  ['G015','7ZlwEGskavM'],['G016','ufDpPywM5_Q'],['G018','G_Sm-fNb7pI'],
+  ['G018A','KKhZMJdE5as'],['G018B','n4j_wbm7VEE'],['G019','fIBFXEPifks'],
+  ['G021','w7VhhaUI0Vc'],['G022','XDd_yDhVsX0'],['G022','Q0qSBd58pdQ'],
+  ['G023','V1gn5I00Wrg'],['G026','YkwQp1hdcL0'],['G027','Fh4FRC-fPag'],
+  ['G028','wCHJElI_DWU'],['G029A','EHbKaKKMrVM'],['G029A','Zq-4PFQ3L6w'],
+  ['G029B','kD-IgfaOlT8'],['G029B','-ndmZqLyS7E'],['G029C','npmeGzjCwx0'],
+  ['G030','Hq76L_I281g'],['G030','brZYsmCnX1M'],['G031A','ui4cJl3yEQg'],
+  ['G031B','T79VFSJBhds'],['G032','yk47gTTh--4'],['G032','kqKGUDn6If8'],
+  ['G033','X6qthpdQmcA'],['G035','7FjTKOaIwxs'],['G037','dcJ9JsUyKZA'],
+].map(([kode, videoId], i) => ({ nomor: i + 1, kode, kategori: 'SMP', videoId }));
+
+const videoSMA = [
+  ['T001','DaFAjTZbmMI'],['T002','Cthp2H-gQJg'],['T003','YofR3PlGGgs'],
+  ['T003','ErGzWXcqyAk'],['T006','0NCdkz5D2rw'],['T006A','cNBuXR051lY'],
+  ['T006B','JjGqeUWcRXg'],['T007','W-ECR34IY18'],['T007','dwVeJ4Ur0uY'],
+  ['T011','cocsHPftgRg'],['T011','OX-QCEntr2A'],['T012','4q1Kb7qQ0hI'],
+  ['T016','PrW4R2aGRWs'],['T016','u5ugCrmzgco'],['T017','Ec9Tr5zLS7k'],
+  ['T018','PLF00AhFBWM'],['T019','4GJkO_lpSHY'],['T021','jzuAFDCmswI'],
+  ['T021A','oHNkR1wPYcA'],['T021B','OiDcKaCx8fg'],['T022','YxQLX_xi_oY'],
+  ['T022','-pHJBtrMSPk'],['T027','EJ5wFhSPazw'],['T027','JkbqWs0MSeo'],
+].map(([kode, videoId], i) => ({ nomor: i + 1, kode, kategori: 'SMA', videoId }));
+
+const allVideos = [...videoSD, ...videoSMP, ...videoSMA];
+
+// Label panjang per kategori
+const KAT_LABEL = {
+  SD:  'Sekolah Dasar',
+  SMP: 'Sekolah Menengah Pertama',
+  SMA: 'Sekolah Menengah Atas',
+};
+
+const FILTER_TABS = [
+  { id: 'SD',  label: 'SD'  },
+  { id: 'SMP', label: 'SMP' },
+  { id: 'SMA', label: 'SMA' },
+];
+
+// ─── Modal Video ──────────────────────────────────────────────────────────────
+function VideoModal({ video, onClose }) {
+  useEffect(() => {
+    const fn = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', fn);
+    return () => window.removeEventListener('keydown', fn);
+  }, [onClose]);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   return (
     <div
-      className="vid-card"
-      style={{ animationDelay: `${index * 0.04}s` }}
+      className="vm-backdrop"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog"
+      aria-modal="true"
     >
-      <div className="vid-thumb-wrap">
-        {videoId ? (
-          loaded ? (
-            <iframe
-              className="vid-iframe"
-              src={embedUrl}
-              title={school}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          ) : (
-            <button
-              className="vid-thumb-btn"
-              onClick={() => setLoaded(true)}
-              aria-label={`Putar video ${school}`}
-            >
-              <img src={thumbUrl} alt={school} className="vid-thumb-img" loading="lazy" />
-              <div className="vid-play-overlay">
-                <div className="vid-play-btn" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                </div>
-              </div>
-            </button>
-          )
-        ) : (
-          <div className="vid-thumb-placeholder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4"
-              width="28" height="28" opacity="0.25">
-              <polygon points="5 3 19 12 5 21 5 3" />
-            </svg>
-            <span>Belum tersedia</span>
-          </div>
-        )}
-      </div>
-      <div className="vid-info">
-        <p className="vid-school">{school}</p>
-      </div>
-    </div>
-  );
-}
+      <div className="vm-card">
+        {/* Garis aksen atas */}
+        <div className="vm-top-bar" />
 
-// ─── Grid per jenis lomba ─────────────────────────────────────────────────────
-function LombaGrid({ title, icon, schools, videoMap }) {
-  return (
-    <div className="lomba-block">
-      <div className="lomba-block-header">
-        <span className="lomba-icon" aria-hidden="true">{icon}</span>
-        <div>
-          <h3 className="lomba-title">{title}</h3>
-          <p className="lomba-count">{schools.length} pangkalan</p>
+        {/* Header */}
+        <div className="vm-header">
+          <div className="vm-header-left">
+            <span className="vm-kat-badge">{video.kategori}</span>
+            <div>
+              <p className="vm-kode">{video.kode}</p>
+              <p className="vm-sub">{KAT_LABEL[video.kategori]}</p>
+            </div>
+          </div>
+          <button className="vm-close" onClick={onClose} aria-label="Tutup">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" width="16" height="16">
+              <path strokeLinecap="round" d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-      </div>
-      <div className="vid-grid">
-        {schools.map((school, i) => (
-          <VideoCard
-            key={school}
-            school={school}
-            videoId={videoMap[school] ?? ''}
-            index={i}
+
+        {/* iframe 16:9 */}
+        <div className="vm-iframe-wrap">
+          <iframe
+            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0`}
+            title={video.kode}
+            className="vm-iframe"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
           />
-        ))}
-      </div>
-    </div>
-  );
-}
+        </div>
 
-// ─── Halaman utama ────────────────────────────────────────────────────────────
-export default function PenampilanPage() {
-  const [activeCat, setActiveCat] = useState(null);
-  const data = activeCat ? penampilanData[activeCat] : null;
-
-  return (
-    <div className="penam-page">
-
-      {/* ── Coming Soon Overlay ── */}
-      <div className="coming-soon-overlay" aria-live="polite">
-        <div className="coming-soon-card">
-          <div className="coming-soon-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="1.2" width="52" height="52">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 6v6l4 2" strokeLinecap="round" />
-            </svg>
-          </div>
-          <p className="coming-soon-eyebrow">Segera Hadir</p>
-          <h2 className="coming-soon-title">Coming Soon</h2>
-          <p className="coming-soon-desc">
-            Video penampilan peserta sedang dalam proses pengumpulan.
-            Halaman ini akan aktif setelah seluruh tim mengirimkan video mereka.
+        {/* Footer */}
+        <div className="vm-footer">
+          <p className="vm-footer-text">
+            {video.kategori} &middot; <strong>{video.kode}</strong>
           </p>
-          <a href="/" className="coming-soon-back-btn">
-            <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
-              <path fillRule="evenodd" clipRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" />
+          <a
+            href={`https://www.youtube.com/watch?v=${video.videoId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="vm-yt-btn"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13">
+              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/>
             </svg>
-            Kembali ke Dashboard
+            Buka YouTube
           </a>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* ── Konten halaman (terblur di balik overlay) ── */}
-      <div className="penam-page-inner">
+// ─── Kartu Video ──────────────────────────────────────────────────────────────
+function VideoCard({ video, index, onWatch }) {
+  const thumb = `https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`;
+
+  return (
+    <article
+      className="vc-card"
+      style={{ animationDelay: `${Math.min(index, 24) * 0.035}s` }}
+    >
+      {/* Title bar */}
+      <div className="vc-title-bar">
+        <div className="vc-title-accent" />
+        <div className="vc-title-main">
+          <span className="vc-kode">{video.kode}</span>
+          <span className="vc-kat-pill">{video.kategori}</span>
+        </div>
+      </div>
+
+      {/* Thumbnail */}
+      <button
+        className="vc-thumb-btn"
+        onClick={() => onWatch(video)}
+        aria-label={`Tonton video ${video.kode}`}
+      >
+        <img src={thumb} alt={video.kode} className="vc-thumb-img" loading="lazy" />
+        <div className="vc-thumb-gradient" />
+        <div className="vc-play-wrap">
+          <div className="vc-play-ring">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+          </div>
+        </div>
+      </button>
+
+      {/* Footer card */}
+      <div className="vc-footer">
+        <p className="vc-footer-label">{KAT_LABEL[video.kategori]}</p>
+        <button className="vc-watch-btn" onClick={() => onWatch(video)}>
+          <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
+            <polygon points="6 3 20 12 6 21 6 3" />
+          </svg>
+          Tonton Video
+        </button>
+      </div>
+    </article>
+  );
+}
+
+// ─── Halaman Utama ────────────────────────────────────────────────────────────
+export default function PenampilanPage() {
+  const [activeFilter, setActiveFilter] = useState('SD');
+  const [selectedVideo, setSelectedVideo] = useState(null);
+
+  const filtered = allVideos.filter((v) => v.kategori === activeFilter);
+
+  const handleWatch = useCallback((v) => setSelectedVideo(v), []);
+  const handleClose = useCallback(() => setSelectedVideo(null), []);
+
+  return (
+    <div className="pp-page">
+      <div className="pp-inner">
 
         {/* Header */}
-        <header className="penam-header">
-          <div className="penam-header-top">
-            <a href="/" className="penam-back-link" aria-label="Kembali ke Dashboard">
-              <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+        <header className="pp-header">
+          <div className="pp-header-row">
+            <a href="/" className="pp-back">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
                 <path fillRule="evenodd" clipRule="evenodd"
                   d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" />
               </svg>
-              <span>Dashboard</span>
+              Dashboard
             </a>
-            <img src={logoWebp} alt="Tanjak Emas" className="penam-logo" />
+            <img src={logoWebp} alt="Tanjak Emas" className="pp-logo" />
           </div>
 
-          <div className="penam-title-block">
-            <p className="penam-eyebrow">Tanjak Emas 2026</p>
-            <h1 className="penam-title">Penampilan Tim</h1>
-            <p className="penam-subtitle">
-              Saksikan aksi terbaik setiap pangkalan dalam dua kategori lomba unggulan —
-              Yel-Yel dan Semaphore Dance.
+          <div className="pp-hero">
+            <p className="pp-eyebrow">Tanjak Emas 2026</p>
+            <h1 className="pp-title">Penampilan Tim</h1>
+            <p className="pp-subtitle">
+              Saksikan aksi terbaik setiap peserta dari seluruh Indonesia.
             </p>
           </div>
         </header>
 
-        {/* Pilih Kategori */}
-        <div className="penam-cat-section">
-          <p className="penam-cat-label">
-            {activeCat ? 'Menampilkan kategori:' : 'Pilih kategori untuk melihat penampilan'}
-          </p>
-          <div className="penam-cat-tabs">
-            {KATEGORI_TABS.map(({ id, label }) => (
+        {/* Filter */}
+        <div className="pp-filter-wrap">
+          <p className="pp-filter-heading">Kategori</p>
+          <div className="pp-filter-tabs">
+            {FILTER_TABS.map(({ id, label }) => (
               <button
                 key={id}
-                className={activeCat === id ? 'penam-cat-btn active' : 'penam-cat-btn'}
-                onClick={() => setActiveCat(id)}
+                className={`pp-filter-btn${activeFilter === id ? ' active' : ''}`}
+                onClick={() => setActiveFilter(id)}
               >
-                {label}
-                <small>{penampilanData[id].schools.length} tim</small>
+                <span className="pp-filter-label">{label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* Empty state */}
-        {!activeCat && (
-          <div className="penam-empty-state">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="1.1" width="56" height="56" opacity="0.2">
-              <rect x="2" y="3" width="20" height="14" rx="2" />
-              <path d="M8 21h8M12 17v4" />
-              <polygon points="10 8 16 11 10 14 10 8" fill="currentColor" stroke="none" opacity="0.7" />
-            </svg>
-            <p>Pilih kategori di atas untuk melihat daftar penampilan tim.</p>
-          </div>
-        )}
-
-        {/* Konten grid */}
-        {data && (
-          <div className="penam-content">
-            <div className="penam-divider">
-              <span className="line" />
-              <span className="penam-divider-label">{data.label}</span>
-              <span className="line" />
-            </div>
-
-            <LombaGrid
-              title="Yel-Yel"
-              icon="📣"
-              schools={data.schools}
-              videoMap={data.yelYel}
+        {/* Grid */}
+        <div className="pp-grid">
+          {filtered.map((video, idx) => (
+            <VideoCard
+              key={`${video.kategori}-${video.videoId}`}
+              video={video}
+              index={idx}
+              onWatch={handleWatch}
             />
-
-            <LombaGrid
-              title="Semaphore Dance"
-              icon="🚩"
-              schools={data.schools}
-              videoMap={data.semaphoreDance}
-            />
-          </div>
-        )}
+          ))}
+        </div>
 
         {/* Footer */}
-        <footer className="penam-footer">
-          <p>&copy; 2026 Badang Perkasa. Seluruh hak cipta dilindungi.</p>
+        <footer className="pp-footer">
+          <div className="pp-footer-divider" />
+          <p>&copy; 2026 Badang Perkasa &middot; Tanjak Emas</p>
         </footer>
       </div>
+
+      {selectedVideo && (
+        <VideoModal video={selectedVideo} onClose={handleClose} />
+      )}
     </div>
   );
 }
